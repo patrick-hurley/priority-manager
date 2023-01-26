@@ -1,0 +1,17 @@
+{
+  "name": "priority-manager",
+  "version": "1.0.0",
+  "description": "Example fullstack app",
+  "main": "index.js",
+  "scripts": {
+    "setup": "(npm run install-app && npm run install-server) && (npm run start-server & npm run start-app & (sleep 5 && npm run initial-seed))",
+    "install-app": "cd app && npm install",
+    "install-server": "cd server && npm install",
+    "initial-seed": "cd server && sequelize db:seed:all",
+    "start-app": "cd app && npm run serve",
+    "start-server": "cd server && npm run dev",
+    "start": "npm run start-server & npm run start-client"
+  },
+  "author": "Patrick Hurley",
+  "license": "ISC"
+}
