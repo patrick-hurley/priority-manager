@@ -5,7 +5,7 @@ import users from '@/testing/data/users'
 
 // mock axios
 jest.mock('../services/UserService')
-const getAllUsers = UserService.getAllUsers
+const userResponse = UserService.getAll
 
 const factory = () => {
     return mount(AdminUserViewAll)
@@ -17,7 +17,7 @@ describe('AdminUserViewAll', () => {
     })
 
     it('Shows an error message on server error', async () => {
-        ;(getAllUsers as jest.Mock).mockRejectedValueOnce(
+        ;(userResponse as jest.Mock).mockRejectedValueOnce(
             new Error('Network Error')
         )
 
@@ -29,7 +29,7 @@ describe('AdminUserViewAll', () => {
     })
 
     it('Shows no results message when the are no users', async () => {
-        ;(getAllUsers as jest.Mock).mockResolvedValueOnce({ data: [] })
+        ;(userResponse as jest.Mock).mockResolvedValueOnce({ data: [] })
 
         const wrapper = factory()
         await flushPromises()
@@ -39,7 +39,7 @@ describe('AdminUserViewAll', () => {
     })
 
     it('Shows no results message when the are no users', async () => {
-        ;(getAllUsers as jest.Mock).mockResolvedValueOnce({ data: users })
+        ;(userResponse as jest.Mock).mockResolvedValueOnce({ data: users })
 
         const wrapper = factory()
         await flushPromises()

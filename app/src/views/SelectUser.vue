@@ -53,10 +53,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-import UserService from '@/services/UserService'
+import UserService, { User } from '@/services/UserService'
 
 import { useUserStore } from '@/stores/user'
 const userStore = useUserStore()
@@ -68,14 +68,11 @@ let users = ref<Array<User>>()
 let selectedUser = ref<User>()
 const router = useRouter()
 
-interface User {
-    id: string
-    name: string
-}
+const { response, cancel } = UserService.getAll<User>()
 
 async function getUsers(): Promise<void> {
     try {
-        const foundUsers = await UserService.getAllUsers()
+        const foundUsers = await response
         users.value = foundUsers.data
     } catch {
         fetchError.value = true
@@ -95,5 +92,8 @@ function selectUser() {
 onMounted(async () => {
     await getUsers()
     fetchComplete.value = true
+})
+onUnmounted(() => {
+    cancel()
 })
 </script>

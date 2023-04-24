@@ -8,9 +8,9 @@ interface Question {
 
 export default {
     createQuestion(payload: Question) {
-        return Api().post('questions', payload)
+        return Api.post('questions', payload)
     },
     getAllQuestions() {
-        return Api().get('questions')
+        return Api.get('questions')
     },
 }

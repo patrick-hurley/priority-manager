@@ -1,9 +1,5 @@
+import { User } from '@/services/UserService'
 import { defineStore } from 'pinia'
-
-interface User {
-    id: string
-    name: string
-}
 
 export const useUserStore = defineStore('user', {
     state: () => ({

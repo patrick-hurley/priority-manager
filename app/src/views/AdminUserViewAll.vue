@@ -31,23 +31,19 @@
 </template>
 
 <script setup lang="ts">
-import UserService from '@/services/UserService'
-import { ref, onMounted } from 'vue'
+import UserService, { User } from '@/services/UserService'
+import { ref, onMounted, onUnmounted } from 'vue'
+
 const users = ref<Array<User>>()
 let showError = ref(false)
 let fetchComplete = ref(false)
 
-interface User {
-    id: string
-    name: string
-    createdAt: string
-    updatedAt: string
-}
+const { response, cancel } = UserService.getAll<User>()
 
 async function getUsers(): Promise<void> {
     try {
-        const foundUsers = await UserService.getAllUsers()
-        users.value = foundUsers.data
+        const userResponse = await response
+        users.value = userResponse.data
     } catch (err) {
         showError.value = true
     }
@@ -56,7 +52,7 @@ async function getUsers(): Promise<void> {
 
 async function deleteUser(id: string): Promise<void> {
     try {
-        await UserService.deleteUser(id)
+        await UserService.delete(id)
         await getUsers()
     } catch (err) {
         showError.value = true
@@ -64,5 +60,8 @@ async function deleteUser(id: string): Promise<void> {
 }
 onMounted(async () => {
     await getUsers()
+})
+onUnmounted(() => {
+    cancel()
 })
 </script>
