@@ -18,7 +18,7 @@ const push = jest.fn()
 // mock axios
 jest.mock('../services/QuestionService')
 jest.mock('../services/AnswerService')
-const getAllQuestions = QuestionService.getAllQuestions
+const getAllQuestions = QuestionService.getAll
 const createAnswerSet = AnswerService.createAnswerSet
 
 const activeUser = {

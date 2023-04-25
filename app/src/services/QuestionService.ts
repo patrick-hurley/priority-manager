@@ -1,16 +1,12 @@
-import Api from './Api'
-
-interface Question {
-    type: string
+export interface Question {
+    id: string
     label: string
     order: number
+    type: string
+    current: boolean
+    answer: string | boolean | Date
 }
 
-export default {
-    createQuestion(payload: Question) {
-        return Api.post('questions', payload)
-    },
-    getAllQuestions() {
-        return Api.get('questions')
-    },
-}
+import HttpService from './HttpService'
+
+export default new HttpService('/questions')

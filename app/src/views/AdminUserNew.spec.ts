@@ -4,7 +4,7 @@ import UserService from '@/services/UserService'
 
 // mock axios
 jest.mock('../services/UserService')
-const createUser = UserService.createUser
+const createUser = UserService.create
 
 const factory = () => {
     return mount(AdminUserNew, {

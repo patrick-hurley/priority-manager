@@ -1,111 +1,80 @@
 <template>
     <div class="container">
-        <div v-if="fetchComplete">
-            <div v-if="showError" data-testid="show-error">
-                <p>Something went wrong</p>
-            </div>
-            <div v-else>
-                <div v-if="questionnaire && questionnaire.length > 0">
-                    <div
-                        v-if="questionComplete"
-                        data-testid="questionnaire-complete"
-                    >
-                        <h1>questionnaire complete.</h1>
+        <div v-if="showError" data-testid="show-error">
+            <p>Something went wrong</p>
+        </div>
 
-                        <div
-                            v-for="(question, index) in questionnaire"
-                            :key="index"
-                        >
-                            <div v-if="question.answer" class="answer">
-                                <p>
-                                    <strong>{{ question.label }}</strong>
-                                </p>
+        <div v-if="isLoading"><p>Loading...</p></div>
 
-                                <p>Answer: {{ question.answer }}</p>
-                            </div>
-                        </div>
-                        <div class="navigation">
-                            <button @click="startQuestions()">
-                                Submit another
-                            </button>
-                            <button
-                                @click="router.push({ name: 'DashboardUser' })"
-                                class="back"
-                            >
-                                Back
-                            </button>
-                        </div>
+        <div v-if="questions && questions.length > 0">
+            <div v-if="questionnaireComplete" data-testid="questions-complete">
+                <h1>questions complete.</h1>
+
+                <div v-for="(question, index) in questions" :key="index">
+                    <div v-if="question.answer" class="answer">
+                        <p>
+                            <strong>{{ question.label }}</strong>
+                        </p>
+
+                        <p>Answer: {{ question.answer }}</p>
                     </div>
-
-                    <QuestionItem
-                        v-else
-                        v-for="(question, index) in questionnaire"
-                        :key="index"
-                        :question="question"
-                        :number="index + 1"
-                        @answered="processAnswer"
-                        @goToQuestion="goToQuestion"
-                    />
                 </div>
-                <div v-else data-testid="no-results">
-                    <p>No questions found</p>
+                <div class="navigation">
+                    <button @click="startQuestions()">Submit another</button>
+                    <button
+                        @click="router.push({ name: 'DashboardUser' })"
+                        class="back"
+                    >
+                        Back
+                    </button>
                 </div>
             </div>
+
+            <QuestionItem
+                v-else
+                v-for="(question, index) in questions"
+                :key="index"
+                :question="question"
+                :number="index + 1"
+                @answered="processAnswer"
+                @goToQuestion="goToQuestion"
+            />
+        </div>
+        <div v-else data-testid="no-results">
+            <p>No questions found</p>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import QuestionItem from '../components/QuestionItem.vue'
-import QuestionService from '@/services/QuestionService'
 import AnswerService from '@/services/AnswerService'
 import { useUserStore } from '@/stores/user'
+import { useQuestions } from '../hooks/useQuestions'
 
 const userStore = useUserStore()
 const router = useRouter()
+const { isLoading, showError, data: questions, execute } = useQuestions()
 
-let questionsInit: []
-let questionnaire = ref<Array<Question>>()
-let questionComplete = ref(false)
-let fetchComplete = ref(false)
-let showError = ref(false)
+let questionnaireComplete = ref(false)
 
 onMounted(async () => {
+    await execute()
     if (!userStore.activeUser) {
         router.push({
             name: 'SelectUser',
         })
-        return
     }
-    try {
-        const questionResponse = await QuestionService.getAllQuestions()
-        questionsInit = questionResponse.data
-        if (questionsInit.length > 0) {
-            startQuestions()
-        }
-    } catch {
-        showError.value = true
-    }
-    fetchComplete.value = true
+    startQuestions()
 })
 
 function startQuestions() {
-    questionnaire.value = JSON.parse(JSON.stringify(questionsInit))
-
-    if (questionnaire.value) {
-        questionnaire.value[0].current = true
+    if (questions.value && questions.value.length > 0) {
+        questions.value[0].current = true
     }
-    questionComplete.value = false
-}
-
-interface Question {
-    id: string
-    label: string
-    type: string
-    current: boolean
-    answer: string | boolean | Date
+    questionnaireComplete.value = false
 }
 
 interface Response {
@@ -114,13 +83,13 @@ interface Response {
 }
 
 function processAnswer(response: Response): void {
-    if (questionnaire.value) {
-        questionnaire.value[response.index].answer = response.answer
-        questionnaire.value[response.index].current = false
+    if (questions.value) {
+        questions.value[response.index].answer = response.answer
+        questions.value[response.index].current = false
         if (response.index === 1 && response.answer === 'No') {
             submitAnswers()
-        } else if (response.index + 1 < questionnaire.value.length) {
-            questionnaire.value[response.index + 1].current = true
+        } else if (response.index + 1 < questions.value.length) {
+            questions.value[response.index + 1].current = true
         } else {
             submitAnswers()
         }
@@ -128,9 +97,9 @@ function processAnswer(response: Response): void {
 }
 
 function goToQuestion(number: number) {
-    if (number > 0 && questionnaire.value) {
-        questionnaire.value[number - 1].current = true
-        questionnaire.value[number].current = false
+    if (number > 0 && questions.value) {
+        questions.value[number - 1].current = true
+        questions.value[number].current = false
     } else {
         router.push({
             name: 'DashboardUser',
@@ -139,8 +108,8 @@ function goToQuestion(number: number) {
 }
 
 async function submitAnswers() {
-    questionComplete.value = true
-    const answers = questionnaire.value
+    questionnaireComplete.value = true
+    const answers = questions.value
         ?.map((x) => {
             return {
                 questionId: x.id,

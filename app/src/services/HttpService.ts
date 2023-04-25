@@ -3,7 +3,7 @@ import Api from './Api'
 class HttpService {
     constructor(private path: string) {}
 
-    getAll<T>(params: {} = {}) {
+    getAll<T>(params?: object) {
         const controller = new AbortController()
         const response = Api.get<T[]>(this.path, {
             signal: controller.signal,

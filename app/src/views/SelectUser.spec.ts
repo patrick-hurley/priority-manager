@@ -21,7 +21,7 @@ const resp = {
 
 // mock axios
 jest.mock('../services/UserService')
-const getAllUsers = UserService.getAllUsers
+const getAllUsers = UserService.getAll
 
 const factory = async () => {
     return mount(SelectUser, {

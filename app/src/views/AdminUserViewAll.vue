@@ -4,7 +4,10 @@
         <div v-if="showError" data-testid="error-message">
             <p>Something went wrong.</p>
         </div>
-        <div v-if="fetchComplete">
+        <div v-if="isLoading">
+            <p>Loading...</p>
+        </div>
+        <div v-else>
             <ul v-if="users && users.length > 0">
                 <li
                     v-for="(user, index) in users"
@@ -31,37 +34,22 @@
 </template>
 
 <script setup lang="ts">
-import UserService, { User } from '@/services/UserService'
-import { ref, onMounted, onUnmounted } from 'vue'
+import UserService from '@/services/UserService'
+import { useUsers } from '../hooks/useUsers'
+import { onMounted } from 'vue'
 
-const users = ref<Array<User>>()
-let showError = ref(false)
-let fetchComplete = ref(false)
+const { isLoading, showError, data: users, execute } = useUsers()
 
-const { response, cancel } = UserService.getAll<User>()
-
-async function getUsers(): Promise<void> {
-    try {
-        const userResponse = await response
-        users.value = userResponse.data
-    } catch (err) {
-        showError.value = true
-    }
-    fetchComplete.value = true
-}
+onMounted(async () => {
+    await execute()
+})
 
 async function deleteUser(id: string): Promise<void> {
     try {
         await UserService.delete(id)
-        await getUsers()
+        execute()
     } catch (err) {
         showError.value = true
     }
 }
-onMounted(async () => {
-    await getUsers()
-})
-onUnmounted(() => {
-    cancel()
-})
 </script>

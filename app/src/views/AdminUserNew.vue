@@ -5,6 +5,9 @@
         <div v-if="showError" data-testid="error-message">
             <p>Something went wrong</p>
         </div>
+        <div v-if="isLoading">
+            <p>Looaaaading....</p>
+        </div>
         <div v-else-if="createComplete" data-testid="created-confirmation">
             <h2>User created.</h2>
             <Teleport to="#navigation" v-if="isMounted">
@@ -39,26 +42,20 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import UserService from '@/services/UserService'
 import FormTextVue from '@/components/FormText.vue'
+import { useCreateUser } from '@/hooks/useCreateUser'
+const { isLoading, showError, execute } = useCreateUser()
 
 let name = ref('')
 let createComplete = ref(false)
 let isMounted = ref(false)
-let showError = ref(false)
 let validationMessage = ref<string | null>(null)
 
 async function createUser() {
     if (name.value) {
         validationMessage.value = null
-        try {
-            await UserService.createUser({
-                name: name.value,
-            })
-            createComplete.value = true
-        } catch {
-            showError.value = true
-        }
+        await execute({ name: name.value })
+        createComplete.value = true
     } else {
         validationMessage.value = 'Please enter a name'
     }
