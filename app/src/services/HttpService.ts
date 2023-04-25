@@ -3,13 +3,12 @@ import Api from './Api'
 class HttpService {
     constructor(private path: string) {}
 
-    getAll<T>(params?: object) {
-        const controller = new AbortController()
-        const response = Api.get<T[]>(this.path, {
-            signal: controller.signal,
+    async getAll<T>(params?: object) {
+        console.log(this.path)
+        const res = await Api.get<T[]>(this.path, {
             params: { ...params },
         })
-        return { response, cancel: () => controller.abort() }
+        return res.data
     }
 
     create<T>(data: T) {
