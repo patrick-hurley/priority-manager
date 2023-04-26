@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <div v-if="showError" data-testid="show-error">
+        <div v-if="isError" data-testid="show-error">
             <p>Something went wrong</p>
         </div>
 
@@ -52,22 +52,36 @@ import { useRouter } from 'vue-router'
 import QuestionItem from '../components/QuestionItem.vue'
 import AnswerService from '@/services/AnswerService'
 import { useUserStore } from '@/stores/user'
-import { useQuestions } from '../hooks/useQuestions'
+import useQuery from '@/hooks/useQuery'
+import QuestionService, { Question } from '@/services/QuestionService'
+import { QUESTIONS } from '../constants/QueryType'
+
+interface Response {
+    answer: string | boolean | Date
+    index: number
+}
 
 const userStore = useUserStore()
 const router = useRouter()
-const { isLoading, showError, data: questions, execute } = useQuestions()
 
-let questionnaireComplete = ref(false)
+const questionnaireComplete = ref(false)
+const questions = ref()
+const { isLoading, isError, data, refetch } = useQuery<Question>(
+    QuestionService,
+    QUESTIONS,
+    false
+)
 
 onMounted(async () => {
-    await execute()
     if (!userStore.activeUser) {
         router.push({
             name: 'SelectUser',
         })
     }
-    startQuestions()
+    refetch().then(() => {
+        questions.value = JSON.parse(JSON.stringify(data.value))
+        startQuestions()
+    })
 })
 
 function startQuestions() {
@@ -75,11 +89,6 @@ function startQuestions() {
         questions.value[0].current = true
     }
     questionnaireComplete.value = false
-}
-
-interface Response {
-    answer: string | boolean | Date
-    index: number
 }
 
 function processAnswer(response: Response): void {
@@ -110,13 +119,13 @@ function goToQuestion(number: number) {
 async function submitAnswers() {
     questionnaireComplete.value = true
     const answers = questions.value
-        ?.map((x) => {
+        ?.map((x: Question) => {
             return {
                 questionId: x.id,
                 answer: x.answer,
             }
         })
-        .filter((x) => x.answer)
+        .filter((x: Question) => x.answer)
     const payload = {
         userId: userStore.activeUser?.id,
         answers,
@@ -125,7 +134,7 @@ async function submitAnswers() {
     try {
         await AnswerService.createAnswerSet(payload)
     } catch {
-        showError.value = true
+        isError.value = true
     }
 }
 </script>

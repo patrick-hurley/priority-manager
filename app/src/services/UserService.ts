@@ -1,7 +1,7 @@
 import HttpService from './HttpService'
 
 export interface User {
-    id: string
+    id?: string
     name: string
 }
 

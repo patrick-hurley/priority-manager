@@ -68,12 +68,12 @@ let users = ref<Array<User>>()
 let selectedUser = ref<User>()
 const router = useRouter()
 
-const { response, cancel } = UserService.getAll<User>()
+const response = UserService.getAll<User>()
 
 async function getUsers(): Promise<void> {
     try {
         const foundUsers = await response
-        users.value = foundUsers.data
+        users.value = foundUsers
     } catch {
         fetchError.value = true
     }
@@ -92,8 +92,5 @@ function selectUser() {
 onMounted(async () => {
     await getUsers()
     fetchComplete.value = true
-})
-onUnmounted(() => {
-    cancel()
 })
 </script>

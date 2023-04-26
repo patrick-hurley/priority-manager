@@ -2,11 +2,11 @@
     <div class="container">
         <h1>Create User</h1>
 
-        <div v-if="showError" data-testid="error-message">
+        <div v-if="!mutation.isError" data-testid="error-message">
             <p>Something went wrong</p>
         </div>
-        <div v-if="isLoading">
-            <p>Looaaaading....</p>
+        <div v-if="!mutation.isLoading">
+            <p>Loading....</p>
         </div>
         <div v-else-if="createComplete" data-testid="created-confirmation">
             <h2>User created.</h2>
@@ -43,18 +43,21 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import FormTextVue from '@/components/FormText.vue'
-import { useCreateUser } from '@/hooks/useCreateUser'
-const { isLoading, showError, execute } = useCreateUser()
+import useCreateMutation from '@/hooks/useCreateMutation'
+import UserService, { User } from '@/services/UserService'
+import { USERS } from '@/constants/QueryType'
 
 let name = ref('')
 let createComplete = ref(false)
 let isMounted = ref(false)
 let validationMessage = ref<string | null>(null)
 
+const mutation = useCreateMutation<User>(UserService, USERS)
+
 async function createUser() {
     if (name.value) {
         validationMessage.value = null
-        await execute({ name: name.value })
+        mutation.mutate({ name: name.value })
         createComplete.value = true
     } else {
         validationMessage.value = 'Please enter a name'

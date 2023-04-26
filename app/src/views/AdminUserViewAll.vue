@@ -34,42 +34,13 @@
 </template>
 
 <script setup lang="ts">
-import { useQuery, useMutation } from '@tanstack/vue-query'
+import useDeleteMutation from '../hooks/useDeleteMutation'
+import useQuery from '@/hooks/useQuery'
 import UserService, { User } from '@/services/UserService'
+import { USERS } from '../constants/QueryType'
 
-import { useQueryClient } from '@tanstack/vue-query'
-const queryClient = useQueryClient()
-
-const {
-    isLoading,
-    isError,
-    data: users,
-} = useQuery({
-    queryKey: ['users'],
-    queryFn: () => UserService.getAll(),
-})
-
-const mutation = useMutation({
-    mutationFn: (id: string) => UserService.delete(id),
-    onMutate: async (id: string) => {
-        // Store original data before the update
-        const previousUsers: User[] = queryClient.getQueryData(['users'])!
-
-        // Optimistically update the data
-        queryClient.setQueryData(['users'], (old: any) =>
-            old.filter((user: User) => user.id !== id)
-        )
-
-        // Return the original snapshot (before the optimistic change was made)
-        return { previousUsers }
-    },
-    onError: (err, _, context) => {
-        queryClient.setQueryData(['users'], context?.previousUsers)
-    },
-    onSettled: () => {
-        queryClient.invalidateQueries()
-    },
-})
+const { isLoading, isError, data: users } = useQuery<User>(UserService, USERS)
+const mutation = useDeleteMutation<User>(UserService, USERS)
 
 async function deleteUser(id: string) {
     mutation.mutate(id)
